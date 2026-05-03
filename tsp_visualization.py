@@ -1,10 +1,20 @@
 
 # TSP Visualization and Comparison
 # MSML 606 Extra credit project
-import time
-from itertools import permutations
 # tsp_visualization.py
 # Visualizes the TSP solution using matplotlib and networkx
+# Compares to brute force and greeedy alogorithms.
+# Taner Bulbul
+# Muazuddin Syed
+# AI and External Use: Main code for brute-forec and greedy (neraest neighbor)
+# follows class notes and own knowledge. For Held-Karp, we utiilized calss notes
+# for DP and memoization. Used GitHub Copilot for some of the bitmask 
+# implementation and path construction. We added comparison logic and code.
+# Used Copilot for application network graph part but most of the user interaction logic
+# is developed by us.
+import time
+from itertools import permutations
+
 import math
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -29,7 +39,7 @@ cities = [
     ("Laurel", 39.0993, -76.8483),
     ("College Park", 38.9897, -76.9378)
 ]
-
+# Calculate the distance between two cities using Earth;s curvature.
 def distance(city1, city2):
     lat1, lon1 = city1[1], city1[2]
     lat2, lon2 = city2[1], city2[2]
@@ -41,6 +51,7 @@ def distance(city1, city2):
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     return R * c
 
+# Build the a distance adjacency matrix for the cities.
 def build_distance_matrix(city_list):
     n = len(city_list)
     dist = []
@@ -52,6 +63,7 @@ def build_distance_matrix(city_list):
     return dist
 
 # Brute force TSP (for small n)
+# Experimentallyy more 11-12 cities may lock your computer!!!
 def brute_force_tsp(start_idx, city_list):
     n = len(city_list)
     dist = build_distance_matrix(city_list)
@@ -59,13 +71,14 @@ def brute_force_tsp(start_idx, city_list):
     min_cost = float('inf')
     best_path = None
     op_count = 0
-    for perm in permutations(nodes):
+    # each permutation is a possible tour
+    for perm in permutations(nodes): # (n-1)! permutations
         cost = 0
         prev = start_idx
         for node in perm:
             cost += dist[prev][node]
             prev = node
-            op_count += 1  # one operation per edge
+            op_count += 1  # one operation per edge, for comparison
         cost += dist[prev][start_idx]  # return to start
         op_count += 1
         if cost < min_cost:
@@ -73,17 +86,20 @@ def brute_force_tsp(start_idx, city_list):
             best_path = [start_idx] + list(perm)
     return min_cost, best_path, city_list, op_count
 
+# Dynamic Programming TSP (Held-Karp)
 def held_karp(start_idx, city_list):
     n = len(city_list)
     dist = build_distance_matrix(city_list)
     C = {}
     op_count = 0
-    for k in range(n):
+    for k in range(n): # Initialize Base cases
         if k == start_idx:
             continue
-        C[(1 << k, k)] = (dist[start_idx][k], start_idx)
-        op_count += 1
-    for subset_size in range(2, n):
+        # for each city initially only the cost from start 
+        # to that city is known, and the parent is start_idx
+        C[(1 << k, k)] = (dist[start_idx][k], start_idx) # (cost, parent)
+        op_count += 1 # for statistics
+    for subset_size in range(2, n): # Iterate over subsets of increasing size
         for subset in combinations([i for i in range(n) if i != start_idx], subset_size):
             bits = 0
             for bit in subset:
@@ -94,8 +110,13 @@ def held_karp(start_idx, city_list):
                 for m in subset:
                     if m == k:
                         continue
+                    # the cost to reach k from the subset defined 
+                    # by prev_bits is the cost to reach city m plus the
+                    # cost from m to k
                     res.append((C[(prev_bits, m)][0] + dist[m][k], m))
                     op_count += 1
+                    # State is defined by the subset of cities 
+                    # visited (bits) and the last city visited (k)
                 C[(bits, k)] = min(res)
     bits = 0
     for i in range(n):
@@ -105,6 +126,7 @@ def held_karp(start_idx, city_list):
     for k in range(n):
         if k == start_idx:
             continue
+        # cost for returning to the starting city
         res.append((C[(bits, k)][0] + dist[k][start_idx], k))
         op_count += 1
     opt, parent = min(res)
@@ -125,17 +147,20 @@ def held_karp(start_idx, city_list):
 def greedy_tsp(start_idx, city_list):
     n = len(city_list)
     dist = build_distance_matrix(city_list)
-    unvisited = set(range(n))
+    unvisited = set(range(n)) # use a set, no repeated cities allowed
     path = [start_idx]
     total_cost = 0
     op_count = 0
     current = start_idx
     unvisited.remove(current)
+    # for each unvisited city, find the nearest one and go there
     while unvisited:
+        # choose the nearest unvisited city
         next_city = min(unvisited, key=lambda city: dist[current][city])
         total_cost += dist[current][next_city]
         path.append(next_city)
         current = next_city
+        # once we visit a city, remove from the set
         unvisited.remove(current)
         op_count += 1
     total_cost += dist[current][start_idx]  # return to start
@@ -143,8 +168,9 @@ def greedy_tsp(start_idx, city_list):
     op_count += 1
     return total_cost, path, city_list, op_count
 
+# Graph the TSP using networkx and mathplotlib
 def plot_tsp(path, method_name=None):
-    G = nx.DiGraph()
+    G = nx.DiGraph() # directed graph
     pos = {}
     for idx, (name, lat, lon) in enumerate(cities):
         pos[idx] = (lon, lat)
@@ -190,6 +216,10 @@ def plot_tsp(path, method_name=None):
     
     plt.show()
 
+# ask for starting city and number of cities to visit
+# then ask for algorithms to run. Individual or all
+# Print the results and graph the tour for each selected 
+# algorithm
 def main():
 
     print("Cities (enter the number in the first column):")
