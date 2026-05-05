@@ -25,27 +25,23 @@ Distances are calculated using the **Haversine formula** (great-circle distance 
 
 ## Requirements
 
-- Python 3.x
+- Python
 - `matplotlib`
 - `networkx`
 
 Install dependencies:
 
-```bash
 pip install matplotlib networkx
-```
 
-## Usage
+## How to run: 
 
-```bash
 python tsp_visualization.py
-```
 
 The program will interactively prompt you to:
 
 1. **Select a starting city** (1–16)
 2. **Choose how many cities** to include in the tour (2–16)
-   - > ⚠️ Brute Force is automatically skipped for more than 12 cities to prevent excessive computation time.
+   - >  Brute Force is automatically skipped for more than 12 cities to prevent excessive computation time.
 3. **Select an algorithm** to run:
    - `1` — Held-Karp (Dynamic Programming)
    - `2` — Brute Force
@@ -54,8 +50,8 @@ The program will interactively prompt you to:
 
 ## Output
 
-- **Console**: Tour order, total distance (km), execution time, and estimated vs. actual operation counts
-- **Plot**: A directed network graph showing the tour route overlaid on a lat/lon coordinate grid with edge labels showing distance and step order
+- **Console**: Tour order, total distance (km), execution time, and estimated vs. actual operation counts are printed on the console
+- **Plot**: A directed network graph for each methods showing the tour route overlaid on a coordinate grid with edge labels showing distance and step order
 - **Summary table**: Side-by-side comparison of all selected algorithms
 
 ## Example Summary Table
@@ -68,7 +64,7 @@ Brute Force             245.30         3.8741
 Greedy                  267.14         0.0003
 ```
 
-## Attribution
+## External Resource Usage
 
 - Brute force and greedy algorithms follow class notes and the authors' own knowledge.
 - Held-Karp bitmask implementation and path reconstruction assisted by GitHub Copilot.
